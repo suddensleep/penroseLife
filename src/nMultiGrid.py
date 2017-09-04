@@ -70,7 +70,7 @@ class nMultiGrid(object):
                      Path.LINETO,
                      Path.CLOSEPOLY]
             path = Path(verts, codes)
-            patch = patches.PathPatch(path, facecolor='orange', lw=2)
+            patch = patches.PathPatch(path, facecolor='orange', lw=0.5)
             ax.add_patch(patch)
         ax.set_xlim(-100,100)
         ax.set_ylim(-100,100)
@@ -82,14 +82,14 @@ class nMultiGrid(object):
     def K(self, x, y):
         return [np.ceil(x*np.cos(2*j*PI/self.n) +
                         y*np.sin(2*j*PI/self.n) +
-                        self.gammas[j]) for j in range(0, self.n)]
+                        self.gammas[j] - 0.00001) for j in range(0, self.n)]
 
     def phi(self, k):
         x_res = np.sum([k[j]*np.cos(2*j*PI/self.n) for j in range(0, self.n)])
         y_res = np.sum([k[j]*np.sin(2*j*PI/self.n) for j in range(0, self.n)])
         return (x_res, y_res)
 
-N = 5
+N = 19
 n = nMultiGrid(N, [x*1./(N+1) for x in range(N)])
 #n.plot_lines()
 #n.plot_intersection_points()
