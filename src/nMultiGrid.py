@@ -1,28 +1,41 @@
+##################################################################
+####################### NMULTIGRID.PY ############################
+####################### John Gilling #############################
+##################################################################
+
 import sys
-import matplotlib.pyplot as plt
+
 import numpy as np
-from matplotlib.path import Path
-from matplotlib import colors as mcolors
+import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from Line import Line
+from matplotlib.path import Path
+from matplotlib import colors as mcolors
+
+from line import Line
+
 
 PI = np.pi
 GRID_COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
-COLORS = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS)
+COLORS = mcolors.CSS4_COLORS.keys()
 
 class nMultiGrid(object):
     def __init__(self, n, gammas):
         self.n = n
         self.gammas = gammas
-
         assert(len(self.gammas) == self.n)
-
         self.grid_color_repeat = (self.n - 1) / len(GRID_COLORS) + 1
-
         self.lines = [self.get_lines(j, 5) for j in range(self.n)]
-
         self.intersection_points = self.get_intersection_points()
+        self.color_map = self.make_color_map()
+
+    def make_color_map(self):
+        dim_pairings = [(i, j)
+                        for i in range(self.n)
+                        for j in range(self.n)
+                        if i != j]
+        color_repeat = (len(dim_pairings) - 1) / len(COLORS) + 1
+        return dict(zip(dim_pairings, COLORS*color_repeat))
         
     def eval_eqn(self, a, b, c, d, x):
         if b == 0:
@@ -48,7 +61,7 @@ class nMultiGrid(object):
             for j in range(i + 1, self.n):
                 for k in range(len(self.lines[i])):
                     for m in range(len(self.lines[j])):
-                        all_points.append([self.lines[i][k].intersect(self.lines[j][m]), [i, j]])
+                        all_points.append([self.lines[i][k].intersect(self.lines[j][m]), (i, j)])
         return all_points
 
     def plot_intersection_points(self):
@@ -73,12 +86,14 @@ class nMultiGrid(object):
                      Path.LINETO,
                      Path.CLOSEPOLY]
             path = Path(verts, codes)
-            patch = patches.PathPatch(path, facecolor='papayawhip', lw=0.5)
+            patch = patches.PathPatch(path,
+                                      facecolor=self.color_map[dims],
+                                      lw=0.1)
             ax.add_patch(patch)
-        ax.set_xlim(-10,10)
-        ax.set_ylim(-10,10)
+        ax.set_xlim(-2*self.n,2*self.n)
+        ax.set_ylim(-2*self.n,2*self.n)
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.show()
+        plt.savefig("../figures/"+str(self.n)+".eps", format='eps', dpi=1000)
 
     
 
@@ -96,9 +111,9 @@ if __name__=="__main__":
     try:
         N = int(sys.argv[1])
         n = nMultiGrid(N, [x*1./(N+1) for x in range(N)])
-        n.plot_lines()
-        n.plot_intersection_points()
-        plt.show()
+        #n.plot_lines()
+        #n.plot_intersection_points()
+        #plt.show()
         n.plot_tiles()
     except IndexError:
         print("Usage: python nMultiGrid.py <number of dimensions>")
