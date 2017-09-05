@@ -1,4 +1,4 @@
 *.pyc
 *~
-./figures/*
+*.eps
 *.DS_Store
